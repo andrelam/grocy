@@ -102,7 +102,7 @@ $(document).on('click', '.undo-task-button', function(e)
 	var taskId = $(e.currentTarget).attr('data-task-id');
 	var taskName = $(e.currentTarget).attr('data-task-name');
 
-	Grocy.Api.Post('tasks/' + taskId + '/undo', { },
+	Grocy.Api.Post('tasks/' + taskId + '/undo', {},
 		function()
 		{
 			window.location.reload();
@@ -115,11 +115,11 @@ $(document).on('click', '.undo-task-button', function(e)
 	);
 });
 
-$(document).on('click', '.delete-task-button', function (e)
+$(document).on('click', '.delete-task-button', function(e)
 {
 	e.preventDefault();
 
-	var objectName = $(e.currentTarget).attr('data-task-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-task-name'));
 	var objectId = $(e.currentTarget).attr('data-task-id');
 
 	bootbox.confirm({
@@ -185,7 +185,8 @@ function RefreshStatistics()
 			var overdueCount = 0;
 			var now = moment();
 			var nextXDaysThreshold = moment().add(nextXDays, "days");
-			result.forEach(element => {
+			result.forEach(element =>
+			{
 				var date = moment(element.due_date);
 				if (date.isBefore(now))
 				{

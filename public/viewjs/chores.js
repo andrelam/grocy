@@ -19,9 +19,9 @@ $("#search").on("keyup", Delay(function()
 	choresTable.search(value).draw();
 }, 200));
 
-$(document).on('click', '.chore-delete-button', function (e)
+$(document).on('click', '.chore-delete-button', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-chore-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-chore-name'));
 	var objectId = $(e.currentTarget).attr('data-chore-id');
 
 	bootbox.confirm({

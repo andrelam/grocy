@@ -5,7 +5,10 @@
 		{ 'searchable': false, "targets": 0 },
 		{ 'orderData': 2, 'targets': 1 }
 	],
-	'select': 'single',
+	select: {
+		style: 'single',
+		selector: 'tr td:not(:first-child)'
+	},
 	'initComplete': function()
 	{
 		this.api().row({ order: 'current' }, 0).select();
@@ -39,7 +42,7 @@ if (typeof recipe !== "undefined")
 if (GetUriParam("search") !== undefined)
 {
 	$("#search").val(GetUriParam("search"));
-	setTimeout(function ()
+	setTimeout(function()
 	{
 		$("#search").keyup();
 	}, 50);
@@ -58,8 +61,8 @@ $("#search").on("keyup", Delay(function()
 	recipesTables.search(value).draw();
 
 	$(".recipe-gallery-item").removeClass("d-none");
-	console.log(	$(".recipe-gallery-item .card-title:not(:contains_case_insensitive(" + value + "))"));
-	
+	console.log($(".recipe-gallery-item .card-title:not(:contains_case_insensitive(" + value + "))"));
+
 	$(".recipe-gallery-item .card-title:not(:contains_case_insensitive(" + value + "))").parent().parent().parent().addClass("d-none");
 }, 200));
 
@@ -77,8 +80,8 @@ $("#status-filter").on("change", function()
 $(".recipe-delete").on('click', function(e)
 {
 	e.preventDefault();
-	
-	var objectName = $(e.currentTarget).attr('data-recipe-name');
+
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-recipe-name'));
 	var objectId = $(e.currentTarget).attr('data-recipe-id');
 
 	bootbox.confirm({
@@ -115,7 +118,7 @@ $(".recipe-delete").on('click', function(e)
 
 $(document).on('click', '.recipe-shopping-list', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-recipe-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-recipe-name'));
 	var objectId = $(e.currentTarget).attr('data-recipe-id');
 
 	bootbox.confirm({
@@ -161,7 +164,7 @@ $(document).on('click', '.recipe-shopping-list', function(e)
 
 $(".recipe-consume").on('click', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-recipe-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-recipe-name'));
 	var objectId = $(e.currentTarget).attr('data-recipe-id');
 
 	bootbox.confirm({
@@ -183,7 +186,7 @@ $(".recipe-consume").on('click', function(e)
 			{
 				Grocy.FrontendHelpers.BeginUiBusy();
 
-				Grocy.Api.Post('recipes/' + objectId + '/consume', { },
+				Grocy.Api.Post('recipes/' + objectId + '/consume', {},
 					function(result)
 					{
 						Grocy.FrontendHelpers.EndUiBusy();
@@ -242,7 +245,7 @@ $(".recipe-fullscreen").on('click', function(e)
 
 $(".recipe-print").on('click', function(e)
 {
-	e.preventDefault();	
+	e.preventDefault();
 
 	$("#selectedRecipeCard").removeClass("fullscreen");
 	$("body").removeClass("fullscreen-card");
@@ -255,7 +258,7 @@ $(".recipe-print").on('click', function(e)
 
 $('#servings-scale').keyup(function(event)
 {
-	var data = { };
+	var data = {};
 	data.desired_servings = $(this).val();
 
 	Grocy.Api.Put('objects/recipes/' + $(this).data("recipe-id"), data,

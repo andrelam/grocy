@@ -1320,7 +1320,7 @@ msgstr ""
 msgid "this location"
 msgstr ""
 
-msgid "Consumend amount"
+msgid "Consumed amount"
 msgstr ""
 
 msgid "Time of printing"
@@ -1809,4 +1809,103 @@ msgid "Save & continue"
 msgstr ""
 
 msgid "Save & return to recipes"
+msgstr ""
+
+msgid "Stock value"
+msgstr ""
+
+msgid "Average price"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Barcodes"
+msgstr ""
+
+msgid "Barcode"
+msgstr ""
+
+msgid "Create Barcode"
+msgstr ""
+
+msgid "Barcode for product"
+msgstr ""
+
+msgid "Edit Barcode"
+msgstr ""
+
+msgid "Not enough in stock (not included in costs), %s ingredient missing"
+msgstr ""
+
+msgid "Based on the prices of the default consume rule which is \"First expiring first, then first in first out\""
+msgstr ""
+
+msgid "Not enough in stock (not included in costs), %1$s missing, %2$s already on shopping list"
+msgstr ""
+
+msgid "Quantity unit stock cannot be changed after first purchase"
+msgstr ""
+
+msgid "Clear filter"
+msgstr ""
+
+msgid "Permissions for user %s"
+msgstr ""
+
+msgid "Are you sure you want to remove full permissions for yourself?"
+msgstr ""
+
+msgid "Permissions saved"
+msgstr ""
+
+msgid "You are not allowed to view this page"
+msgstr ""
+
+msgid "Page not found"
+msgstr ""
+
+msgid "Unauthorized"
+msgstr ""
+
+msgid "Error source"
+msgstr ""
+
+msgid "Error message"
+msgstr ""
+
+msgid "Stack trace"
+msgstr ""
+
+msgid "This page does not exist"
+msgstr ""
+
+msgid "You will be redirected to the default page in %s seconds"
+msgstr ""
+
+msgid "Server error"
+msgstr ""
+
+msgid "A server error occured while processing your request"
+msgstr ""
+
+msgid "If you think this is a bug, please report it"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "User settings"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Stock journal summary"
+msgstr ""
+
+msgid "Journal summary"
+msgstr ""
+
+msgid "Journal summary for this product"
 msgstr ""

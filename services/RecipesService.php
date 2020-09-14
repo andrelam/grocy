@@ -2,55 +2,42 @@
 
 namespace Grocy\Services;
 
-#use \Grocy\Services\StockService;
+use LessQL\Result;
 
 class RecipesService extends BaseService
 {
-	const RECIPE_TYPE_NORMAL = 'normal';
 	const RECIPE_TYPE_MEALPLAN_DAY = 'mealplan-day';
+
 	const RECIPE_TYPE_MEALPLAN_WEEK = 'mealplan-week';
 
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
-	public function GetRecipesPosResolved()
-	{
-		$sql = 'SELECT * FROM recipes_pos_resolved';
-		return $this->getDataBaseService()->ExecuteDbQuery($sql)->fetchAll(\PDO::FETCH_OBJ);
-	}
-
-	public function GetRecipesResolved()
-	{
-		$sql = 'SELECT * FROM recipes_resolved';
-		return $this->getDataBaseService()->ExecuteDbQuery($sql)->fetchAll(\PDO::FETCH_OBJ);
-	}
+	const RECIPE_TYPE_NORMAL = 'normal';
 
 	public function AddNotFulfilledProductsToShoppingList($recipeId, $excludedProductIds = null)
 	{
 		$recipe = $this->getDataBase()->recipes($recipeId);
 
 		$recipePositions = $this->GetRecipesPosResolved();
+
 		foreach ($recipePositions as $recipePosition)
 		{
-			if($recipePosition->recipe_id == $recipeId && !in_array($recipePosition->product_id, $excludedProductIds))
+			if ($recipePosition->recipe_id == $recipeId && !in_array($recipePosition->product_id, $excludedProductIds))
 			{
 				$product = $this->getDataBase()->products($recipePosition->product_id);
 
-				$toOrderAmount = ceil(($recipePosition->missing_amount - $recipePosition->amount_on_shopping_list) / $product->qu_factor_purchase_to_stock);
+				$toOrderAmount = round(($recipePosition->missing_amount - $recipePosition->amount_on_shopping_list) / $product->qu_factor_purchase_to_stock, 2);
+
 				if ($recipe->not_check_shoppinglist == 1)
 				{
-					$toOrderAmount = ceil($recipePosition->missing_amount / $product->qu_factor_purchase_to_stock);
+					$toOrderAmount = round($recipePosition->missing_amount / $product->qu_factor_purchase_to_stock, 2);
 				}
 
-				if($toOrderAmount > 0)
+				if ($toOrderAmount > 0)
 				{
-					$shoppinglistRow = $this->getDataBase()->shopping_list()->createRow(array(
+					$shoppinglistRow = $this->getDataBase()->shopping_list()->createRow([
 						'product_id' => $recipePosition->product_id,
 						'amount' => $toOrderAmount,
 						'note' => $this->getLocalizationService()->__t('Added for recipe %s', $recipe->name)
-					));
+					]);
 					$shoppinglistRow->save();
 				}
 			}
@@ -66,6 +53,7 @@ class RecipesService extends BaseService
 
 		$transactionId = uniqid();
 		$recipePositions = $this->getDatabase()->recipes_pos_resolved()->where('recipe_id', $recipeId)->fetchAll();
+
 		foreach ($recipePositions as $recipePosition)
 		{
 			if ($recipePosition->only_check_single_unit_in_stock == 0)
@@ -75,11 +63,28 @@ class RecipesService extends BaseService
 		}
 
 		$recipeRow = $this->getDatabase()->recipes()->where('id = :1', $recipeId)->fetch();
+
 		if (!empty($recipeRow->product_id))
 		{
 			$recipeResolvedRow = $this->getDatabase()->recipes_resolved()->where('recipe_id = :1', $recipeId)->fetch();
 			$this->getStockService()->AddProduct($recipeRow->product_id, floatval($recipeRow->desired_servings), null, StockService::TRANSACTION_TYPE_SELF_PRODUCTION, date('Y-m-d'), floatval($recipeResolvedRow->costs));
 		}
+	}
+
+	public function GetRecipesPosResolved()
+	{
+		$sql = 'SELECT * FROM recipes_pos_resolved';
+		return $this->getDataBaseService()->ExecuteDbQuery($sql)->fetchAll(\PDO::FETCH_OBJ);
+	}
+
+	public function GetRecipesResolved(): Result
+	{
+		return $this->getDatabase()->recipes_resolved();
+	}
+
+	public function __construct()
+	{
+		parent::__construct();
 	}
 
 	private function RecipeExists($recipeId)

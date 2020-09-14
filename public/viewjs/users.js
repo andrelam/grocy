@@ -19,9 +19,9 @@ $("#search").on("keyup", Delay(function()
 	usersTable.search(value).draw();
 }, 200));
 
-$(document).on('click', '.user-delete-button', function (e)
+$(document).on('click', '.user-delete-button', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-user-username');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-user-username'));
 	var objectId = $(e.currentTarget).attr('data-user-id');
 
 	bootbox.confirm({

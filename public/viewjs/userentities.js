@@ -19,9 +19,9 @@ $("#search").on("keyup", Delay(function()
 	userentitiesTable.search(value).draw();
 }, 200));
 
-$(document).on('click', '.userentity-delete-button', function (e)
+$(document).on('click', '.userentity-delete-button', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-userentity-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-userentity-name'));
 	var objectId = $(e.currentTarget).attr('data-userentity-id');
 
 	bootbox.confirm({
@@ -41,7 +41,7 @@ $(document).on('click', '.userentity-delete-button', function (e)
 		{
 			if (result === true)
 			{
-				Grocy.Api.Delete('objects/userentities/' + objectId, { },
+				Grocy.Api.Delete('objects/userentities/' + objectId, {},
 					function(result)
 					{
 						window.location.href = U('/userentities');

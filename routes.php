@@ -1,16 +1,12 @@
 <?php
 
+use Grocy\Middleware\AuthMiddleware;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Routing\RouteCollectorProxy;
-
 use Grocy\Middleware\JsonMiddleware;
-use Grocy\Middleware\CorsMiddleware;
-use Grocy\Middleware\SessionAuthMiddleware;
-use Grocy\Middleware\ApiKeyAuthMiddleware;
 
-$app->group('', function(RouteCollectorProxy $group)
-{
+$app->group('', function (RouteCollectorProxy $group) {
 	// System routes
 	$group->get('/', '\Grocy\Controllers\SystemController:Root')->setName('root');
 	$group->get('/about', '\Grocy\Controllers\SystemController:About');
@@ -32,6 +28,10 @@ $app->group('', function(RouteCollectorProxy $group)
 	// User routes
 	$group->get('/users', '\Grocy\Controllers\UsersController:UsersList');
 	$group->get('/user/{userId}', '\Grocy\Controllers\UsersController:UserEditForm');
+	$group->get('/user/{userId}/permissions', '\Grocy\Controllers\UsersController:PermissionList');
+	$group->get('/usersettings', '\Grocy\Controllers\UsersController:UserSettings');
+
+	$group->get('/files/{group}/{fileName}', '\Grocy\Controllers\FilesApiController:ShowFile');
 
 	// Stock routes
 	if (GROCY_FEATURE_FLAG_STOCK)
@@ -45,6 +45,7 @@ $app->group('', function(RouteCollectorProxy $group)
 		$group->get('/stockentry/{entryId}', '\Grocy\Controllers\StockController:StockEntryEditForm');
 		$group->get('/products', '\Grocy\Controllers\StockController:ProductsList');
 		$group->get('/product/{productId}', '\Grocy\Controllers\StockController:ProductEditForm');
+		$group->get('/productbarcodes/{productBarcodeId}', '\Grocy\Controllers\StockController:ProductBarcodesEditForm');
 		$group->get('/stocksettings', '\Grocy\Controllers\StockController:StockSettings');
 		$group->get('/locations', '\Grocy\Controllers\StockController:LocationsList');
 		$group->get('/location/{locationId}', '\Grocy\Controllers\StockController:LocationEditForm');
@@ -56,6 +57,7 @@ $app->group('', function(RouteCollectorProxy $group)
 		$group->get('/stockjournal', '\Grocy\Controllers\StockController:Journal');
 		$group->get('/locationcontentsheet', '\Grocy\Controllers\StockController:LocationContentSheet');
 		$group->get('/quantityunitpluraltesting', '\Grocy\Controllers\StockController:QuantityUnitPluralFormTesting');
+		$group->get('/stockjournal/summary', '\Grocy\Controllers\StockController:JournalSummary');
 	}
 
 	// Stock price tracking
@@ -133,23 +135,22 @@ $app->group('', function(RouteCollectorProxy $group)
 	$group->get('/api', '\Grocy\Controllers\OpenApiController:DocumentationUi');
 	$group->get('/manageapikeys', '\Grocy\Controllers\OpenApiController:ApiKeysList');
 	$group->get('/manageapikeys/new', '\Grocy\Controllers\OpenApiController:CreateNewApiKey');
-})->add(new SessionAuthMiddleware($container, $container->get('LoginControllerInstance')->GetSessionCookieName(), $app->getResponseFactory()));
+});
 
-$app->group('/api', function(RouteCollectorProxy $group)
-{
+$app->group('/api', function (RouteCollectorProxy $group) {
 	// OpenAPI
 	$group->get('/openapi/specification', '\Grocy\Controllers\OpenApiController:DocumentationSpec');
 
 	// System
 	$group->get('/system/info', '\Grocy\Controllers\SystemApiController:GetSystemInfo');
-	$group->get('/system/db-changed-time', '\Grocy\Controllers\SystemApiController:GetDbChangedTime');	
+	$group->get('/system/db-changed-time', '\Grocy\Controllers\SystemApiController:GetDbChangedTime');
 	$group->get('/system/config', '\Grocy\Controllers\SystemApiController:GetConfig');
 	$group->post('/system/log-missing-localization', '\Grocy\Controllers\SystemApiController:LogMissingLocalization');
-	
+
 	// Generic entity interaction
 	$group->get('/objects/{entity}', '\Grocy\Controllers\GenericEntityApiController:GetObjects');
 	$group->get('/objects/{entity}/{objectId}', '\Grocy\Controllers\GenericEntityApiController:GetObject');
-	$group->get('/objects/{entity}/search/{searchString}', '\Grocy\Controllers\GenericEntityApiController:SearchObjects');
+	$group->get('/objects/{entity}/search/{searchString:.*}', '\Grocy\Controllers\GenericEntityApiController:SearchObjects');
 	$group->post('/objects/{entity}', '\Grocy\Controllers\GenericEntityApiController:AddObject');
 	$group->put('/objects/{entity}/{objectId}', '\Grocy\Controllers\GenericEntityApiController:EditObject');
 	$group->delete('/objects/{entity}/{objectId}', '\Grocy\Controllers\GenericEntityApiController:DeleteObject');
@@ -166,6 +167,9 @@ $app->group('/api', function(RouteCollectorProxy $group)
 	$group->post('/users', '\Grocy\Controllers\UsersApiController:CreateUser');
 	$group->put('/users/{userId}', '\Grocy\Controllers\UsersApiController:EditUser');
 	$group->delete('/users/{userId}', '\Grocy\Controllers\UsersApiController:DeleteUser');
+	$group->get('/users/{userId}/permissions', '\Grocy\Controllers\UsersApiController:ListPermissions');
+	$group->post('/users/{userId}/permissions', '\Grocy\Controllers\UsersApiController:AddPermission');
+	$group->put('/users/{userId}/permissions', '\Grocy\Controllers\UsersApiController:SetPermissions');
 
 	// User
 	$group->get('/user/settings', '\Grocy\Controllers\UsersApiController:GetUserSettings');
@@ -199,6 +203,9 @@ $app->group('/api', function(RouteCollectorProxy $group)
 		$group->get('/stock/transactions/{transactionId}', '\Grocy\Controllers\StockApiController:StockTransactions');
 		$group->post('/stock/transactions/{transactionId}/undo', '\Grocy\Controllers\StockApiController:UndoTransaction');
 		$group->get('/stock/barcodes/external-lookup/{barcode}', '\Grocy\Controllers\StockApiController:ExternalBarcodeLookup');
+		$group->get('/productbarcodedetails/{barcode}', '\Grocy\Controllers\StockApiController:ProductBarcodeDetails');
+		$group->get('/stock/journal', '\Grocy\Controllers\StockApiController:Journal');
+		$group->get('/stock/journal/summary', '\Grocy\Controllers\StockApiController:JournalSummary');
 	}
 
 	// Shopping list
@@ -252,11 +259,9 @@ $app->group('/api', function(RouteCollectorProxy $group)
 		$group->get('/calendar/ical', '\Grocy\Controllers\CalendarApiController:Ical')->setName('calendar-ical');
 		$group->get('/calendar/ical/sharing-link', '\Grocy\Controllers\CalendarApiController:IcalSharingLink');
 	}
-})->add(JsonMiddleware::class)
-->add(new ApiKeyAuthMiddleware($container, $container->get('LoginControllerInstance')->GetSessionCookieName(), $container->get('ApiKeyHeaderName')));
+})->add(JsonMiddleware::class);
 
 // Handle CORS preflight OPTIONS requests
-$app->options('/api/{routes:.+}', function(Request $request, Response $response): Response
-{
-	return $response;
-})->add(CorsMiddleware::class);
+$app->options('/api/{routes:.+}', function (Request $request, Response $response): Response {
+	return $response->withStatus(204);
+});

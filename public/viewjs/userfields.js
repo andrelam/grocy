@@ -31,9 +31,9 @@ $("#entity-filter").on("change", function()
 	$("#new-userfield-button").attr("href", U("/userfield/new?entity=" + value));
 });
 
-$(document).on('click', '.userfield-delete-button', function (e)
+$(document).on('click', '.userfield-delete-button', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-userfield-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-userfield-name'));
 	var objectId = $(e.currentTarget).attr('data-userfield-id');
 
 	bootbox.confirm({

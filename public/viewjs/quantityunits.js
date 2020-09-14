@@ -19,9 +19,9 @@ $("#search").on("keyup", Delay(function()
 	quantityUnitsTable.search(value).draw();
 }, 200));
 
-$(document).on('click', '.quantityunit-delete-button', function (e)
+$(document).on('click', '.quantityunit-delete-button', function(e)
 {
-	var objectName = $(e.currentTarget).attr('data-quantityunit-name');
+	var objectName = SanitizeHtml($(e.currentTarget).attr('data-quantityunit-name'));
 	var objectId = $(e.currentTarget).attr('data-quantityunit-id');
 
 	bootbox.confirm({
